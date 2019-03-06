@@ -19,8 +19,39 @@ The Community Demo is comprised of 4 individual projects:
 
 - `admin` - a Spring Boot application for the Broadleaf admin for catalog management, see completed orders, etc
 - `api` - a Spring Boot application that sets up the Broadleaf API endpoints
-- `site` - a Spring Boot application that runs the Heat Clinic UI built with Thymeleaf as traditional MVC
+- `site` - a Spring Boot application that runs the Heat Clinic UI built with Thymeleaf as tradiitional MVC
 - `core` a common jar that all other projects depend on, used for common functionality like domain
+
+## Prerequisits:
+
+ - Centos/RHEL 7
+ - git
+ - java 8
+ - maven
+
+### Steps:
+
+**1. Install required packages:**
+```
+yum -y update && yum install -y epel-release git java-1.8.0-openjdk-devel.x86_64 wget unzip
+```
+
+**2. Install maven:**
+ ```
+cd /usr/local/src
+
+wget http://apache.ip-connect.vn.ua/maven/maven-3/3.6.0/binaries/apache-maven-3.6.0-bin.tar.gz
+tar -xf apache-maven-3.6.0-bin.tar.gz
+mv apache-maven-3.6.0/ apache-maven/
+
+cat <<EOF > /etc/profile.d/maven.sh
+# Apache Maven Environment Variables
+# MAVEN_HOME for Maven 1 - M2_HOME for Maven 2
+export M2_HOME=/usr/local/src/apache-maven
+export PATH=/usr/local/src/apache-maven/bin:${PATH}
+EOF
+source /etc/profile.d/maven.sh
+```
 
 ## Running the projects
 
@@ -128,6 +159,56 @@ Each project by default starts up with different remote debug ports and HTTP/HTT
   - http - `8084`
   - https - `8085`
   - remote debug port - `8002`
+
+## Add unit test
+
+To be able to run unit test via `mvn test` command, please create file `./core/src/test/java/testpackage/SampleTest.java` and add next content to it:
+```
+package testpackage;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertTrue;
+
+public class SampleTest {
+
+    @Test
+    public void testSomething() {
+        assertTrue(1 == 1);
+    }
+}
+```
+
+Add `junit 4.12` dependency to the module dependencies
+
+## Deploy to Artifactory
+
+To deploy build artifacts through Artifactory you need to add a deployment element with the URL of a target local repository to which you want to deploy your artifacts. Please, use next next configuration example:
+```
+<distributionManagement>
+    <snapshotRepository>
+        <id>snapshots</id>
+        <name>e6f37d2755ed-snapshots</name>
+        <url>http://83.170.112.143:80/artifactory/libs-snapshot-local</url>
+    </snapshotRepository>
+</distributionManagement>
+```
+Distribution management acts precisely as it sounds: it manages the distribution of the artifact and supporting files generated throughout the build process.
+
+### Repository
+
+Where as the repositories element specifies in the POM the location and manner in which Maven may download remote artifacts for use by the current project, `distributionManagement` specifies where (and how) this project will get to a remote repository when it is deployed. The repository elements will be used for snapshot distribution if the snapshotRepository is not defined.
+
+### Security settings
+
+Please, create new file in `~/.m2/settings-security.xml` location and add next content to it:
+```
+<settingsSecurity>
+  <master>{y6JedC6tibIH60BF1Kd+2ElNkD8YseDsSIcD8HsCCdc=}</master>
+</settingsSecurity>
+```
+
+This is required to decrypt passwords by `maven`
 
 ## License
 
